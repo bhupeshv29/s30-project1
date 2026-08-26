@@ -9,7 +9,8 @@
     "prisma": "7.10.0"
   },
   "scripts": {
-    "dev": "bun run src/index.ts"
+    "dev": "bun run src/index.ts",
+    "build": "cd db && bunx prisma run dev"
   },
   "peerDependencies": {
     "typescript": "^5"
