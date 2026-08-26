@@ -69,6 +69,9 @@ export const getAllTodos = async (req: Request, res: Response) => {
         userId: req.userId!,
         isDeleted: false,
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
     return res.json({

@@ -6,10 +6,21 @@ import AuthRouter from "../routes/auth.routes";
 import TodoRouter from "../routes/todos.routes";
 
 const app = express();
-const PORT = Number(process.env.PORT || 3000);
+const PORT = Number(process.env.PORT || 8000);
 
 app.use(express.json());
-app.use(cors());
+
+const frontendUrl = process.env.FRONTEND_URL;
+
+if (!frontendUrl) {
+  throw new Error("FRONTEND_URL is not defined");
+}
+
+app.use(
+  cors({
+    origin: [frontendUrl, "http://localhost:3000"],
+  }),
+);
 
 app.get("/health", (_req, res) => {
   res.json({
