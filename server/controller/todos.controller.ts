@@ -22,9 +22,15 @@ export const createTodo = async (req: Request, res: Response) => {
       todo: todo.id,
     });
   } catch (error) {
-    console.error("invalid input", error instanceof ZodError);
-    return res.status(400).json({
-      message: "invalid input sent",
+    if (error instanceof ZodError) {
+      return res.status(400).json({
+        message: "invalid input sent",
+      });
+    }
+
+    console.error(error);
+    return res.status(500).json({
+      message: "internal server error",
     });
   }
 };
@@ -49,7 +55,7 @@ export const getTodoById = async (req: Request, res: Response) => {
       todo,
     });
   } catch (error) {
-    console.error("invalid input", error instanceof ZodError);
+    console.error("invalid input");
     return res.status(500).json({
       message: "invalid input sent",
     });
@@ -69,13 +75,14 @@ export const getAllTodos = async (req: Request, res: Response) => {
       todos,
     });
   } catch (error) {
-    console.error("invalid input", error instanceof ZodError);
-    return res.json({
-      message: "invalid input sent",
+    console.error("Error fetching todos:", error);
+
+    return res.status(500).json({
+      message: "internal server error",
     });
   }
 };
-  
+
 export const updateTodoById = async (req: Request, res: Response) => {
   try {
     const todoId = req.params.id as string;
@@ -83,7 +90,21 @@ export const updateTodoById = async (req: Request, res: Response) => {
 
     const { title, description } = parsedData;
 
-    const todo = await prisma.todo.update({
+    const todo = await prisma.todo.findFirst({
+      where: {
+        id: todoId,
+        userId: req.userId!,
+        isDeleted: false,
+      },
+    });
+
+    if (!todo) {
+      return res.status(404).json({
+        message: "todo not found",
+      });
+    }
+
+    const updatedTodo = await prisma.todo.update({
       where: {
         id: todoId,
         userId: req.userId!,
@@ -96,12 +117,19 @@ export const updateTodoById = async (req: Request, res: Response) => {
 
     return res.json({
       message: "todo updated successfully",
-      todo: todo.id,
+      todo: updatedTodo,
     });
   } catch (error) {
-    console.error("invalid input", error instanceof ZodError);
-    return res.status(404).json({
-      message: "invalid input sent",
+    if (error instanceof ZodError) {
+      return res.status(400).json({
+        message: "invalid input sent",
+      });
+    }
+
+    console.error("Error updating todo:", error);
+
+    return res.status(500).json({
+      message: "internal server error",
     });
   }
 };
@@ -135,7 +163,7 @@ export const toggleTodo = async (req: Request, res: Response) => {
 
     return res.json({
       message: "todo toggled successfully",
-      todo: updatedTodo,
+      todo: updatedTodo.id,
     });
   } catch (error) {
     console.error("Error toggling todo:", error);
@@ -149,7 +177,21 @@ export const deleteTodoById = async (req: Request, res: Response) => {
   try {
     const todoId = req.params.id as string;
 
-    const todo = await prisma.todo.update({
+    const todo = await prisma.todo.findFirst({
+      where: {
+        id: todoId,
+        userId: req.userId!,
+        isDeleted: false,
+      },
+    });
+
+    if (!todo) {
+      return res.status(404).json({
+        message: "todo not found",
+      });
+    }
+
+    const deletedTodo = await prisma.todo.update({
       where: {
         id: todoId,
         userId: req.userId,
@@ -161,12 +203,13 @@ export const deleteTodoById = async (req: Request, res: Response) => {
 
     return res.json({
       message: "todo deleted successfully",
-      todo: todo.id,
+      todo: deletedTodo.id,
     });
   } catch (error) {
-    console.error("invalid input", error instanceof ZodError);
-    return res.status(404).json({
-      message: "invalid input sent",
+    console.error("Error deleting todo:", error);
+
+    return res.status(500).json({
+      message: "internal server error",
     });
   }
 };

@@ -41,8 +41,15 @@ export const SignUp = async (req: Request, res: Response) => {
       userId: user.id,
     });
   } catch (error) {
-    console.error("invalid fields", error instanceof ZodError, error);
-    return res.status(400).json({ message: "something went wrong" });
+    if (error instanceof ZodError) {
+      return res.status(400).json({
+        message: "Invalid fields",
+      });
+    }
+    console.error(error);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
   }
 };
 
@@ -80,7 +87,14 @@ export const SignIn = async (req: Request, res: Response) => {
       token,
     });
   } catch (error) {
-    console.error("invalid fields", error instanceof ZodError, error);
-    return res.status(400).json({ message: "something went wrong" });
+    if (error instanceof ZodError) {
+      return res.status(400).json({
+        message: "Invalid fields",
+      });
+    }
+    console.error(error);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
   }
 };
