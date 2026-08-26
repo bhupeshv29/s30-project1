@@ -42,7 +42,7 @@ export const getTodoById = async (req: Request, res: Response) => {
     });
 
     if (!todo) {
-      return res.json({ message: "no todo is found" });
+      return res.status(404).json({ message: "no todo is found" });
     }
 
     return res.json({
@@ -50,7 +50,7 @@ export const getTodoById = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("invalid input", error instanceof ZodError);
-    return res.json({
+    return res.status(500).json({
       message: "invalid input sent",
     });
   }
@@ -65,10 +65,6 @@ export const getAllTodos = async (req: Request, res: Response) => {
       },
     });
 
-    if (todos?.length === 0) {
-      return res.json({ message: "no todos is found" });
-    }
-
     return res.json({
       todos,
     });
@@ -79,6 +75,7 @@ export const getAllTodos = async (req: Request, res: Response) => {
     });
   }
 };
+  
 export const updateTodoById = async (req: Request, res: Response) => {
   try {
     const todoId = req.params.id as string;
@@ -103,7 +100,7 @@ export const updateTodoById = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("invalid input", error instanceof ZodError);
-    return res.json({
+    return res.status(404).json({
       message: "invalid input sent",
     });
   }
@@ -117,12 +114,13 @@ export const toggleTodo = async (req: Request, res: Response) => {
       where: {
         id: todoId,
         userId: req.userId,
+        isDeleted: false,
       },
     });
 
     if (!todo) {
       return res.status(404).json({
-        message: "Todo not found",
+        message: "todo not found",
       });
     }
 
@@ -136,7 +134,7 @@ export const toggleTodo = async (req: Request, res: Response) => {
     });
 
     return res.json({
-      message: "Todo toggled successfully",
+      message: "todo toggled successfully",
       todo: updatedTodo,
     });
   } catch (error) {
@@ -167,7 +165,7 @@ export const deleteTodoById = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("invalid input", error instanceof ZodError);
-    return res.status(500).json({
+    return res.status(404).json({
       message: "invalid input sent",
     });
   }
